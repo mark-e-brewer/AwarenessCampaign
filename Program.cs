@@ -136,4 +136,69 @@ app.MapDelete("/api/categories/{id}", (AwarenessCampaignDbContext db, int id) =>
     return Results.NoContent();
 });
 
+// Join Table Endpoints
+
+// Associate Category with Post
+app.MapPost("/api/posts/{postId}/categories/{categoryId}", (AwarenessCampaignDbContext db, int postId, int categoryId) =>
+{
+    try
+    {
+        // Retrieve the post from the database
+        Post post = db.Posts.FirstOrDefault(p => p.Id == postId);
+        if (post == null)
+            return Results.NotFound("Post not found.");
+
+        // Retrieve the category from the database
+        Category category = db.Category.FirstOrDefault(c => c.Id == categoryId);
+        if (category == null)
+            return Results.NotFound("Category not found.");
+
+        // Ensure the post's Categories collection is initialized
+        if (post.Categories == null)
+            post.Categories = new List<Category>();
+
+        // Add the category to the post
+        post.Categories.Add(category);
+
+        // Save changes to the database
+        db.SaveChanges();
+
+        return Results.Ok("Category associated with the post successfully.");
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem("An error occurred while associating the category with the post.", ex.Message);
+    }
+});
+
+// Dissociate Category from Post
+app.MapDelete("/api/posts/{postId}/categories/{categoryId}", (AwarenessCampaignDbContext db, int postId, int categoryId) =>
+{
+    // Retrieve the post from the database
+    Post post = db.Posts.FirstOrDefault(p => p.Id == postId);
+    if (post == null)
+        return Results.NotFound("Post not found.");
+
+    // Retrieve the category from the database
+    Category category = db.Category.FirstOrDefault(c => c.Id == categoryId);
+    if (category == null)
+        return Results.NotFound("Category not found.");
+
+    // Check if the category is associated with the post
+    if (post.Categories.Contains(category))
+    {
+        // Remove the category from the post
+        post.Categories.Remove(category);
+
+        // Save changes to the database
+        db.SaveChanges();
+
+        return Results.Ok("Category dissociated from the post successfully.");
+    }
+    else
+    {
+        return Results.NotFound("Category is not associated with the post.");
+    }
+});
+
 app.Run();
