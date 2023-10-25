@@ -70,12 +70,12 @@ app.MapGet("/users", (AwarenessCampaignDbContext db) =>
     return db.Users.ToList();
 });
 
-
+//GET all post
 app.MapGet("/posts", (AwarenessCampaignDbContext db) =>
 {
     return db.Posts.ToList();
 });
-
+//GET single Post
 app.MapGet("/post/{id}", (AwarenessCampaignDbContext db, int id) => 
 {
     var post = db.Posts.FirstOrDefault(p => p.Id == id);
@@ -85,7 +85,7 @@ app.MapGet("/post/{id}", (AwarenessCampaignDbContext db, int id) =>
     }
     return Results.Ok(post);
 });
-
+//POST new Post (no categories attached)
 app.MapPost("/post", async (AwarenessCampaignDbContext db, Post post) => 
 {
     db.Posts.Add(post);

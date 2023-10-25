@@ -18,20 +18,20 @@ namespace AwarenessCampaign
         {
             modelBuilder.Entity<User>().HasData(new User[]
             {
-        new User { Id = 1, UID = "user1", Name = "John Doe" },
-        new User { Id = 2, UID = "user2", Name = "Jane Smith" }
+        new User { Id = 1, UID = "user1", UserName = "John Doe" },
+        new User { Id = 2, UID = "user2", UserName = "Jane Smith" }
             });
 
             modelBuilder.Entity<Category>().HasData(new Category[]
             {
-        new Category { Id = 1, Name = "Category A" },
-        new Category { Id = 2, Name = "Category B" }
+        new Category { Id = 1, CategoryName = "Category A" },
+        new Category { Id = 2, CategoryName = "Category B" }
             });
 
             modelBuilder.Entity<Post>().HasData(new Post[]
             {
-        new Post { Id = 1, Name = "Post 1", Description = "Description for Post 1", UserId = 1 },
-        new Post { Id = 2, Name = "Post 2", Description = "Description for Post 2", UserId = 2 }
+        new Post { Id = 1, PostName = "Post 1", Description = "Description for Post 1", UserId = 1 },
+        new Post { Id = 2, PostName = "Post 2", Description = "Description for Post 2", UserId = 2 }
             });
 
             base.OnModelCreating(modelBuilder);
