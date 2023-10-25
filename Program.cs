@@ -52,7 +52,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+//GET Id from UID
 app.MapGet("/uservalidate/{uid}", (AwarenessCampaignDbContext db, string uid) =>
 {
     var userExists = db.Users.Where(x => x.UID == uid).FirstOrDefault();
@@ -62,11 +62,14 @@ app.MapGet("/uservalidate/{uid}", (AwarenessCampaignDbContext db, string uid) =>
     }
     return Results.Ok(userExists);
 });
+//User Endpoints
 
+//Get All Users
 app.MapGet("/users", (AwarenessCampaignDbContext db) =>
 {
     return db.Users.ToList();
 });
+
 
 app.MapGet("/posts", (AwarenessCampaignDbContext db) =>
 {
@@ -88,6 +91,146 @@ app.MapPost("/post", async (AwarenessCampaignDbContext db, Post post) =>
     db.Posts.Add(post);
     await db.SaveChangesAsync();
     return Results.Created($"/post/{post.Id}", post);
+});
+
+// Get User by id
+app.MapGet("/api/users/{id}", (AwarenessCampaignDbContext db, int id) =>
+{
+    var user = db.Users.SingleOrDefault(u => u.Id == id);
+    if (user == null)
+    {
+        return Results.NotFound();
+    }
+    else
+    {
+        return Results.Ok(user);
+    }
+});
+
+// Category Endpoints
+
+// Create Category
+app.MapPost("/api/category", (AwarenessCampaignDbContext db, Category category) =>
+{
+    db.Category.Add(category);
+    db.SaveChanges();
+    return Results.Created($"/api/categories/{category.Id}", category);
+});
+
+// Get All Categories
+app.MapGet("/api/categories", (AwarenessCampaignDbContext db) =>
+{
+    var categories = db.Category.ToList();
+    return Results.Ok(categories);
+});
+
+// Get Category by id
+app.MapGet("/api/categories/{id}", (AwarenessCampaignDbContext db, int id) =>
+{
+    var category = db.Category.SingleOrDefault(c => c.Id == id);
+    if (category == null)
+    {
+        return Results.NotFound();
+    }
+    else
+    {
+        return Results.Ok(category);
+    }
+});
+
+// Update Category by id
+app.MapPut("/api/categories/{id}", (AwarenessCampaignDbContext db, int id, Category updatedCategory) =>
+{
+    var existingCategory = db.Category.SingleOrDefault(c => c.Id == id);
+    if (existingCategory == null)
+    {
+        return Results.NotFound();
+    }
+
+    existingCategory.Name = updatedCategory.Name;
+    // Update other properties as needed...
+
+    db.SaveChanges();
+    return Results.Ok();
+});
+
+// Delete Category by id
+app.MapDelete("/api/categories/{id}", (AwarenessCampaignDbContext db, int id) =>
+{
+    var category = db.Category.SingleOrDefault(c => c.Id == id);
+    if (category == null)
+    {
+        return Results.NotFound();
+    }
+
+    db.Category.Remove(category);
+    db.SaveChanges();
+    return Results.NoContent();
+});
+
+// Join Table Endpoints
+
+// Associate Category with Post
+app.MapPost("/api/posts/{postId}/categories/{categoryId}", (AwarenessCampaignDbContext db, int postId, int categoryId) =>
+{
+    try
+    {
+        // Retrieve the post from the database
+        Post post = db.Posts.FirstOrDefault(p => p.Id == postId);
+        if (post == null)
+            return Results.NotFound("Post not found.");
+
+        // Retrieve the category from the database
+        Category category = db.Category.FirstOrDefault(c => c.Id == categoryId);
+        if (category == null)
+            return Results.NotFound("Category not found.");
+
+        // Ensure the post's Categories collection is initialized
+        if (post.Categories == null)
+            post.Categories = new List<Category>();
+
+        // Add the category to the post
+        post.Categories.Add(category);
+
+        // Save changes to the database
+        db.SaveChanges();
+
+        return Results.Ok("Category associated with the post successfully.");
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem("An error occurred while associating the category with the post.", ex.Message);
+    }
+});
+
+// Dissociate Category from Post
+app.MapDelete("/api/posts/{postId}/categories/{categoryId}", (AwarenessCampaignDbContext db, int postId, int categoryId) =>
+{
+    // Retrieve the post from the database
+    Post post = db.Posts.FirstOrDefault(p => p.Id == postId);
+    if (post == null)
+        return Results.NotFound("Post not found.");
+
+    // Retrieve the category from the database
+    Category category = db.Category.FirstOrDefault(c => c.Id == categoryId);
+    if (category == null)
+        return Results.NotFound("Category not found.");
+
+    // Check if the category is associated with the post
+    if (post.Categories.Contains(category))
+    {
+        // Remove the category from the post
+        post.Categories.Remove(category);
+
+        // Save changes to the database
+        db.SaveChanges();
+
+        return Results.Ok("Category dissociated from the post successfully.");
+    }
+    else
+    {
+        return Results.NotFound("Category is not associated with the post.");
+    }
 });
 
 app.Run();
