@@ -6,6 +6,7 @@ using AwarenessCampaign;
 using Microsoft.AspNetCore.Builder;
 using System.Runtime.CompilerServices;
 using System.Net;
+using Microsoft.Extensions.Hosting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -69,6 +70,20 @@ app.MapGet("/users", (AwarenessCampaignDbContext db) =>
 {
     return db.Users.ToList();
 });
+// Get User by id
+app.MapGet("/api/users/{id}", (AwarenessCampaignDbContext db, int id) =>
+{
+    var user = db.Users.SingleOrDefault(u => u.Id == id);
+    if (user == null)
+    {
+        return Results.NotFound();
+    }
+    else
+    {
+        return Results.Ok(user);
+    }
+});
+//POST ENDPOINTS
 
 //GET all post
 app.MapGet("/posts", (AwarenessCampaignDbContext db) =>
@@ -92,21 +107,48 @@ app.MapPost("/post", async (AwarenessCampaignDbContext db, Post post) =>
     await db.SaveChangesAsync();
     return Results.Created($"/post/{post.Id}", post);
 });
-
-// Get User by id
-app.MapGet("/api/users/{id}", (AwarenessCampaignDbContext db, int id) =>
+//UPDATE a post
+app.MapPut("/post/{id}", async (AwarenessCampaignDbContext db, int id, Post post) =>
 {
-    var user = db.Users.SingleOrDefault(u => u.Id == id);
-    if (user == null)
+    if (id != post.Id)
+    {
+        return Results.BadRequest();
+    }
+
+    db.Entry(post).State = EntityState.Modified;
+
+    try
+    {
+        await db.SaveChangesAsync();
+    }
+    catch (DbUpdateConcurrencyException)
+    {
+        if (!db.Posts.Any(s => s.Id == id))
+        {
+            return Results.NotFound();
+        }
+        else
+        {
+            throw;
+        }
+    }
+
+    return Results.NoContent();
+});
+//DELETE a post
+app.MapDelete("/posts/{id}", async (AwarenessCampaignDbContext db, int id) =>
+{
+    var post = await db.Posts.FindAsync(id);
+    if (post == null)
     {
         return Results.NotFound();
     }
-    else
-    {
-        return Results.Ok(user);
-    }
-});
 
+    db.Posts.Remove(post);
+    await db.SaveChangesAsync();
+
+    return Results.NoContent();
+});
 // Category Endpoints
 
 // Create Category
@@ -147,7 +189,7 @@ app.MapPut("/api/categories/{id}", (AwarenessCampaignDbContext db, int id, Categ
         return Results.NotFound();
     }
 
-    existingCategory.Name = updatedCategory.Name;
+    existingCategory.CategoryName = updatedCategory.CategoryName;
     // Update other properties as needed...
 
     db.SaveChanges();
