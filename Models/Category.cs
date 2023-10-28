@@ -7,4 +7,3 @@
         public ICollection<Post> Posts { get; set; }
     }
 }
-S
