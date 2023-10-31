@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Builder;
 using System.Runtime.CompilerServices;
 using System.Net;
 using Microsoft.Extensions.Hosting;
+using AwarenessCampaign.DTOs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -274,6 +275,30 @@ app.MapDelete("/api/posts/{postId}/categories/{categoryId}", (AwarenessCampaignD
     {
         return Results.NotFound("Category is not associated with the post.");
     }
+});
+
+app.MapGet("/postwithcategories/{id}", (AwarenessCampaignDbContext db, int id) =>
+{
+    var post = db.Posts
+        .Include(p => p.Categories)
+        .FirstOrDefault(p => p.Id == id);
+
+    if (post == null)
+    {
+        return Results.NotFound();
+    }
+
+    var postDTO = new PostWithCategoriesDTO
+    {
+        Id = post.Id,
+        UserId = post.UserId,
+        PostName = post.PostName,
+        Description = post.Description,
+        Categories = post.Categories.ToList(),
+        // Set other properties as needed
+    };
+
+    return Results.Ok(postDTO);
 });
 
 app.Run();
