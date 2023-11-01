@@ -288,17 +288,7 @@ app.MapGet("/postwithcategories/{id}", (AwarenessCampaignDbContext db, int id) =
         return Results.NotFound();
     }
 
-    var postDTO = new PostWithCategoriesDTO
-    {
-        Id = post.Id,
-        UserId = post.UserId,
-        PostName = post.PostName,
-        Description = post.Description,
-        Categories = post.Categories.ToList(),
-        // Set other properties as needed
-    };
-
-    return Results.Ok(postDTO);
+    return Results.Ok(post);
 });
 
 app.Run();
