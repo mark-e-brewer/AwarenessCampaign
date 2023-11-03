@@ -248,35 +248,60 @@ app.MapPost("/api/posts/{postId}/categories/{categoryId}", (AwarenessCampaignDbC
 });
 
 // Dissociate Category from Post
-app.MapDelete("/api/posts/{postId}/categories/{categoryId}", (AwarenessCampaignDbContext db, int postId, int categoryId) =>
+app.MapDelete("/api/CategoryPost", (int postId, int categoryId, AwarenessCampaignDbContext db) =>
 {
-    // Retrieve the post from the database
-    Post post = db.Posts.FirstOrDefault(p => p.Id == postId);
-    if (post == null)
-        return Results.NotFound("Post not found.");
+    var category = db.Category.Include(m => m.Posts).FirstOrDefault(m => m.Id == categoryId);
 
-    // Retrieve the category from the database
-    Category category = db.Category.FirstOrDefault(c => c.Id == categoryId);
     if (category == null)
-        return Results.NotFound("Category not found.");
-
-    // Check if the category is associated with the post
-    if (post.Categories.Contains(category))
     {
-        // Remove the category from the post
-        post.Categories.Remove(category);
-
-        // Save changes to the database
-        db.SaveChanges();
-
-        return Results.Ok("Category dissociated from the post successfully.");
+        return Results.NotFound();
     }
-    else
+
+    var postToRemove = category.Posts.FirstOrDefault(o => o.Id == postId);
+
+    if (postToRemove == null)
     {
-        return Results.NotFound("Category is not associated with the post.");
+        return Results.NotFound();
+    }
+
+    category.Posts.Remove(postToRemove);
+    db.SaveChanges();
+
+    return Results.Ok("Category Removed From Post Successfully");
+});
+
+//Get Categories by post id
+app.MapGet("/api/posts/{postId}/categories", (AwarenessCampaignDbContext db, int postId) =>
+{
+    try
+    {
+        // Retrieve the post from the database
+        Post post = db.Posts
+            .Include(p => p.Categories)
+            .FirstOrDefault(p => p.Id == postId);
+
+        if (post == null)
+            return Results.NotFound("Post not found.");
+
+        // Get the categories associated with the post
+        var categories = post.Categories
+            .Select(category => new
+            {
+                id = category.Id,
+                categoryName = category.CategoryName
+            })
+            .ToList();
+
+        return Results.Ok(categories);
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem("An error occurred while retrieving the categories associated with the post.", ex.Message);
     }
 });
 
+
+//Get Post With Categories
 app.MapGet("/postwithcategories/{id}", (AwarenessCampaignDbContext db, int id) =>
 {
     var post = db.Posts
