@@ -30,8 +30,8 @@ namespace AwarenessCampaign
 
             modelBuilder.Entity<Post>().HasData(new Post[]
             {
-        new Post { Id = 1, PostName = "Post 1", Description = "Description for Post 1", UserId = 1 },
-        new Post { Id = 2, PostName = "Post 2", Description = "Description for Post 2", UserId = 2 }
+        new Post { Id = 1, PostName = "Post 1", Description = "Description for Post 1", UserId = 1, ImageUrl = "url_for_image_1" },
+        new Post { Id = 2, PostName = "Post 2", Description = "Description for Post 2", UserId = 2, ImageUrl = "url_for_image_2" }
             });
 
             base.OnModelCreating(modelBuilder);
