@@ -137,6 +137,22 @@ app.MapPut("/post/{id}", async (AwarenessCampaignDbContext db, int id, Post post
 
     return Results.NoContent();
 });
+//update post v2
+app.MapPut("/postv2/{id}", (AwarenessCampaignDbContext db, int id, Post post) =>
+{
+    Post postToUpdate = db.Posts.SingleOrDefault(p => p.Id == id);
+    if (postToUpdate == null)
+    {
+        return Results.NotFound();
+    }
+    postToUpdate.PostName = post.PostName;
+    postToUpdate.Description = post.Description;
+    postToUpdate.UserId = post.UserId;
+
+
+    db.SaveChanges();
+    return Results.NoContent();
+});
 //DELETE a post
 app.MapDelete("/posts/{id}", async (AwarenessCampaignDbContext db, int id) =>
 {
@@ -197,6 +213,8 @@ app.MapPut("/api/categories/{id}", (AwarenessCampaignDbContext db, int id, Categ
     db.SaveChanges();
     return Results.Ok();
 });
+
+
 
 // Delete Category by id
 app.MapDelete("/api/categories/{id}", (AwarenessCampaignDbContext db, int id) =>
