@@ -8,6 +8,7 @@ namespace AwarenessCampaign.Models
         public int UserId { get; set; }
         public string PostName { get; set; }
         public string Description { get; set; }
+        public string ImageUrl { get; set; }
         public ICollection<Category> Categories { get; set; }
         public User User { get; set; }
     }
